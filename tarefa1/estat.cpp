@@ -9,6 +9,7 @@ calcula a média, o desvio padrão e um histograma desses valores.
 #include <array>
 #include <tuple>
 
+//template das funcoes
 std::vector<double> read_file(char const *filename);
 std::array<double, 2> estat_data(std::vector<double> const &data);
 std::tuple<std::vector<int>, std::vector<double>> box_histogram(std::vector<double> const &data, int B);
@@ -18,16 +19,18 @@ int main(int, char const *args[]) {
 
   //Recebe os parametros
   int B = std::stoi(args[2]);
-  vector_data = read_file(args[1]);
-
+  vector_data = read_file(args[1]); //chama a funcao de ler as linhas
+  
+  //chama as funcoes do histograma e calculo media e desvio padrao
   auto [mean, stdev] = estat_data(vector_data);
   auto [count_box, informacao_box] = box_histogram(vector_data, B);
 
-  //Print do resultado
-  std::cout << vector_data.size() << std::endl;
-  std::cout << mean << std::endl;
-  std::cout << stdev << std::endl;
+  //Print dos resultados
+  std::cout << vector_data.size() << std::endl; //numero de elementos
+  std::cout << mean << std::endl; //media
+  std::cout << stdev << std::endl; //desvio padrao
 
+  //Print do resultado do histograma separado por " "
   for(int i = 0; i < B; ++i){
       std::cout << informacao_box[i] << " " << informacao_box[i + 1] << " " << count_box[i] << std::endl;
   }
@@ -37,7 +40,6 @@ int main(int, char const *args[]) {
 
 
 std::vector<double> read_file(char const *filename) {
-  //variáveis
   std::vector<double> data;
   std::ifstream file(filename);
   double val;
@@ -61,7 +63,7 @@ std::array<double,2> estat_data(std::vector<double> const &data) {
 
   //Desvio padrão
   for (auto x: data) {
-      stdev += pow(x - mean, 2);
+    stdev += pow(x - mean, 2);
   }
   stdev /= (data.size() - 1);
   stdev = pow(stdev, 0.5);
@@ -74,25 +76,28 @@ std::tuple<std::vector<int>, std::vector<double>> box_histogram(std::vector<doub
   std::vector<double> info(B + 1);
   double box_size;
   double max{data[0]}, min{data[0]};
-  int j;
+  int k;
 
+  //Acha o max e min
   for (auto x: data){
-      if(max < x) max = x;
-      if(min > x) min = x;
+    if(max < x) max = x;
+    if(min > x) min = x;
   }
 
   box_size = (max - min)/B;
   
+  //Computa a que caixa ele pertence
   for (auto x: data) {
-      if (x != max) {
-          j = floor((x - min)/box_size);
-          ++count[j];
-      }
-      else ++count[B - 1];
+    if (x != max) {
+      k = floor((x - min)/box_size);
+      ++count[k];
+    }
+    else ++count[B - 1];
   }
 
+  //gera o vetor informacao das caixas
   for (int i = 0; i <= B; ++i) {
-      info[i] = min + box_size*i;
+    info[i] = min + box_size*i;
   }
 
   return {count, info};
