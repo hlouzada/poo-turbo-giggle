@@ -12,16 +12,13 @@
 
 // Class to represent an experimental measurement value.
 class Measurement {
-  public:
-    float value; // Measured value
-    float error; // Associated error
+  private:
+    float _value; // Measured value
+    float _error; // Associated error
   
+  public:
     //-----------------------------------------------------------------------------
     // Arithmetic operations on measurements.
-    Measurement &operator+=(Measurement const &);
-    Measurement &operator-=(Measurement const &);
-    Measurement &operator*=(Measurement const &);
-    Measurement &operator/=(Measurement const &);
   
     // Some two measurements. Evaluate error.
     friend Measurement operator+(Measurement const &a, Measurement const &b);
@@ -40,6 +37,15 @@ class Measurement {
   
     // Divide a measurement by a constant. Evaluate error.
     friend Measurement operator/(Measurement const &a, float b);
+
+    friend std::ostream& operator<<(std::ostream &os, Measurement const &a){
+      os << a._value << " +- " << a._error;
+      return os;
+    }
+    Measurement(float value = 0, float error = 0) {
+      _value = value;
+      _error = error;
+    }
 };
 
 //-----------------------------------------------------------------------------
@@ -117,12 +123,10 @@ int main(int argc, char const *argv[]) {
   auto velocities = data.velocities;
 
   std::cout << "Evaluated values follow.\n\n";
-  std::cout << "Gravitational acceleration: " << g.value << " +- " << g.error
-            << std::endl;
+  std::cout << "Gravitational acceleration: " << g << std::endl;
   std::cout << "Velocities:\n";
   for (size_t i = 0; i < velocities.size(); ++i) {
-    std::cout << velocities[i].value << " +- " << velocities[i].error
-              << std::endl;
+    std::cout << velocities[i] << std::endl;
   }
 
   return 0;
@@ -247,29 +251,29 @@ std::vector<Measurement> Compute::calculate_velocities(Measurement g) {
 inline float square(float x) { return x * x; }
 
 Measurement operator+(Measurement const &a, Measurement const &b) {
-  return {a.value + b.value, std::sqrt(square(a.error) + square(b.error))};
+  return {a._value + b._value, std::sqrt(square(a._error) + square(b._error))};
 }
 
 Measurement operator-(Measurement const &a, Measurement const &b) {
-  return {a.value - b.value, std::sqrt(square(a.error) + square(b.error))};
+  return {a._value - b._value, std::sqrt(square(a._error) + square(b._error))};
 }
 
 Measurement operator*(Measurement const &a, Measurement const &b) {
-  auto value = a.value * b.value;
-  return {value, std::fabs(value) * std::sqrt(square(a.error / a.value) +
-                                              square(b.error / b.value))};
+  auto _value = a._value * b._value;
+  return {_value, std::fabs(_value) * std::sqrt(square(a._error / a._value) +
+                                              square(b._error / b._value))};
 }
 
 Measurement operator*(float a, Measurement const &b) {
-  return {a * b.value, std::fabs(a) * b.error};
+  return {a * b._value, std::fabs(a) * b._error};
 }
 
 Measurement operator/(Measurement const &a, Measurement const &b) {
-  auto value = a.value / b.value;
-  return {value, std::fabs(value) * std::sqrt(square(a.error / a.value) +
-                                              square(b.error / b.value))};
+  auto _value = a._value / b._value;
+  return {_value, std::fabs(_value) * std::sqrt(square(a._error / a._value) +
+                                              square(b._error / b._value))};
 }
 
 Measurement operator/(Measurement const &a, float b) {
-  return {a.value / b, a.error / std::fabs(b)};
+  return {a._value / b, a._error / std::fabs(b)};
 }
