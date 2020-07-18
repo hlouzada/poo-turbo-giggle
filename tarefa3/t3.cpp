@@ -127,17 +127,11 @@ int main(int, char *[]) {
   try {
     for (size_t i = 0; i < some_values.size(); ++i) {
       louv.insert(some_values[i]);
-      if (louv.size() != some_sizes[i]) {
-        std::cerr << "Erro de insercao: indice " << i
-                  << ", valor: " << some_values[i]
-                  << ", tamanho esperado: " << some_sizes[i]
-                  << ", tamanho obtido: " << louv.size() << std::endl;
-      }
     }
   } catch (LimitedOrderedUniqueValuesOverLimit& e) {
       std::cerr << e.what()
-                << "Valor: " << e.get_inserted_value()
-                << ", quantiade máxima de valores: " << e.get_size() << std::endl;
+                << " Valor: " << e.get_inserted_value()
+                << ", tamanho máximo: " << e.get_size() << std::endl;
   }
 
   for (auto x : some_values) {
@@ -146,15 +140,15 @@ int main(int, char *[]) {
     }
   }
 
-  auto [first1, last1] = louv.find_range(0, 9);
-  for (auto current = first1; current != last1; ++current) {
+  auto [first3, last3] = louv.find_range(0, 9);
+  for (auto current = first3; current != last3; ++current) {
     if (*current < 0) {
       std::cerr << "Erro na selecao dos valores nao-negativos: " << *current
                 << std::endl;
     }
   }
-  auto [first2, last2] = ouv.find_range(-10, 0);
-  for (auto current = first2; current != last2; ++current) {
+  auto [first4, last4] = louv.find_range(-10, 0);
+  for (auto current = first4; current != last4; ++current) {
     if (*current >= 0) {
       std::cerr << "Erro na selecao dos valores negativos: " << *current
                 << std::endl;
