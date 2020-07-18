@@ -4,13 +4,20 @@
 #include <exception>
 
 // Clase do erro gerado
-class LmitedOrderedUniqueValuesOverLimit : public std::exception
-{
-  virtual const char* what() const throw()
-  {
-    return "Erro na inserção de um novo valor, tamanho execido";
-  }
-} overlimit;
+class LimitedOrderedUniqueValuesOverLimit : public std::exception {
+  int _value_inserted;
+  int _size_max;
+
+  public:
+    LimitedOrderedUniqueValuesOverLimit(int value, int size) : _value_inserted{value}, _size_max{size} {}
+
+    virtual const char* what() const throw() {
+      return "Erro na inserção de um novo valor, tamanho excedido.";
+    }
+
+    int get_size() const { return _size_max; }
+    int get_inserted_value() const { return _value_inserted; }
+};
 
 // Classe que mantem um conjunto de valores sem duplicacao e em ordem crescente.
 // Permite verificar a existencia ou nao de um valor e pegar uma faixa de
@@ -48,30 +55,32 @@ public:
   size_t size() const { return _data.size(); }
 
   // Insere um novo elemento, se nao existir ainda.
-  void insert(int value) {
+  virtual void insert(int value) {
     auto [first, last] = std::equal_range(begin(_data), end(_data), value);
     if (first == last) {
       _data.insert(last, value);
     }
   }
+
+  virtual ~OrderedUniqueValues() {};
+
 };
 
 //Classe derivada do OrderedUniqueValues com um tamanho máximo definido
-class LmitedOrderedUniqueValues : public OrderedUniqueValues {
+class LimitedOrderedUniqueValues : public OrderedUniqueValues {
 
 private:
   int _limit;
 
 public:
-  LmitedOrderedUniqueValues(int max) : _limit{max} {};
+  LimitedOrderedUniqueValues(int max) : _limit{max} {};
 
-  void insert(int value) {
+  void insert(int value) override {
     if (static_cast<int>(OrderedUniqueValues::size()) == _limit) {
-      throw overlimit;
+      throw LimitedOrderedUniqueValuesOverLimit(value, _limit);
     } else {
       OrderedUniqueValues::insert(value);
     }
-
   }
 
 };
@@ -112,5 +121,45 @@ int main(int, char *[]) {
                 << std::endl;
     }
   }
+
+  // Alguns teste simples com a sub classe de tamanho limitada
+  LimitedOrderedUniqueValues louv(5);
+  try {
+    for (size_t i = 0; i < some_values.size(); ++i) {
+      louv.insert(some_values[i]);
+      if (louv.size() != some_sizes[i]) {
+        std::cerr << "Erro de insercao: indice " << i
+                  << ", valor: " << some_values[i]
+                  << ", tamanho esperado: " << some_sizes[i]
+                  << ", tamanho obtido: " << louv.size() << std::endl;
+      }
+    }
+  } catch (LimitedOrderedUniqueValuesOverLimit& e) {
+      std::cerr << e.what()
+                << "Valor: " << e.get_inserted_value()
+                << ", quantiade máxima de valores: " << e.get_size() << std::endl;
+  }
+
+  for (auto x : some_values) {
+    if (!louv.find(x)) {
+      std::cerr << "Nao achou valor inserido " << x << std::endl;
+    }
+  }
+
+  auto [first1, last1] = louv.find_range(0, 9);
+  for (auto current = first1; current != last1; ++current) {
+    if (*current < 0) {
+      std::cerr << "Erro na selecao dos valores nao-negativos: " << *current
+                << std::endl;
+    }
+  }
+  auto [first2, last2] = ouv.find_range(-10, 0);
+  for (auto current = first2; current != last2; ++current) {
+    if (*current >= 0) {
+      std::cerr << "Erro na selecao dos valores negativos: " << *current
+                << std::endl;
+    }
+  }
+  
   return 0;
 }
